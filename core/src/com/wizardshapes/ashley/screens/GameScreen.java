@@ -10,12 +10,14 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.wizardshapes.ashley.AshleyTest;
 import com.wizardshapes.ashley.Assets;
 import com.wizardshapes.ashley.components.AnimationComponent;
+import com.wizardshapes.ashley.components.CameraComponent;
 import com.wizardshapes.ashley.components.MovementComponent;
 import com.wizardshapes.ashley.components.PlayerComponent;
 import com.wizardshapes.ashley.components.StateComponent;
 import com.wizardshapes.ashley.components.TextureComponent;
 import com.wizardshapes.ashley.components.TransformComponent;
 import com.wizardshapes.ashley.systems.AnimationSystem;
+import com.wizardshapes.ashley.systems.CameraSystem;
 import com.wizardshapes.ashley.systems.MovementSystem;
 import com.wizardshapes.ashley.systems.PlayerSystem;
 import com.wizardshapes.ashley.systems.RenderingSystem;
@@ -37,9 +39,11 @@ public class GameScreen extends ScreenAdapter {
 		engine.addSystem(new MovementSystem());
 		engine.addSystem(new AnimationSystem());
 		engine.addSystem(new StateSystem());
+		engine.addSystem(new CameraSystem());
 		engine.addSystem(new RenderingSystem(game.batch));
 		
 		Entity bob = createBob();
+		createCamera(bob);
 	}
 	
 	@Override
@@ -73,7 +77,7 @@ public class GameScreen extends ScreenAdapter {
  		animation.animations.put(PlayerComponent.STATE_IDLE, Assets.idleAnimation);
  		animation.animations.put(PlayerComponent.STATE_JOGGING, Assets.jogAnimation);
  		animation.animations.put(PlayerComponent.STATE_RUNNING, Assets.runAnimation);
-		position.pos.set(5.0f, 1.0f, 0.0f);
+		position.pos.set(5.0f, 0.0f, 0.0f);
 		
 		entity.add(bob);
 		entity.add(movement);
@@ -85,5 +89,19 @@ public class GameScreen extends ScreenAdapter {
 		engine.addEntity(entity);
 		
 		return entity;
+	}
+	
+	private void createCamera(Entity target) {
+		Entity entity = new Entity();
+		
+		CameraComponent camera = new CameraComponent();
+		camera.camera = engine.getSystem(RenderingSystem.class).getCamera();
+		camera.target = target;
+		camera.xBuffer = 6f;
+		camera.yBuffer = 6f;
+		entity.add(camera);
+		//camera.camera.position.x = target.getComponent(TransformComponent.class).pos.x;
+		//camera.camera.position.y = target.getComponent(TransformComponent.class).pos.y;
+		engine.addEntity(entity);
 	}
 }

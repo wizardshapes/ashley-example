@@ -6,8 +6,11 @@ import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.wizardshapes.ashley.components.TextureComponent;
@@ -56,6 +59,19 @@ public class RenderingSystem extends IteratingSystem {
 		renderQueue.sort(comparator);
 		
 		cam.update();
+		
+		//quick and dirty camera test
+//		ShapeRenderer shapeRenderer = new ShapeRenderer();
+//		shapeRenderer.setProjectionMatrix(cam.combined);
+//		shapeRenderer.begin(ShapeType.Filled);
+//		for (float i = -1000; i <= 100; i += 10){
+//			
+//			shapeRenderer.setColor(Color.ORANGE);
+//			shapeRenderer.circle(i, 10f, 1);
+//		}
+//		shapeRenderer.end();
+		 
+		
 		batch.setProjectionMatrix(cam.combined);
 		batch.begin();
 		
