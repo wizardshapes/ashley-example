@@ -1,6 +1,7 @@
 package com.wizardshapes.ashley;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
@@ -12,6 +13,7 @@ public class Assets {
 	public static Animation jogAnimation;
 	public static Animation idleAnimation;
 	public static Animation runAnimation;
+	public static Music musicTest;
 	
 	public static Texture loadTexture (String file) {
 		return new Texture(Gdx.files.internal(file));
@@ -38,6 +40,7 @@ public class Assets {
 		idleAnimation = new Animation(1f, new TextureRegion(loadTexture("idle.png"), 0,0,64,64));
 		jogAnimation.setPlayMode(PlayMode.LOOP);
 		runAnimation.setPlayMode(PlayMode.LOOP);
+		musicTest = Gdx.audio.newMusic(Gdx.files.internal("sounds/turks-theme.mp3"));
 	}
 
 }

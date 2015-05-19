@@ -33,7 +33,7 @@ public class MovementSystem extends IteratingSystem {
 		tmp.set(mov.velocity).scl(deltaTime);
 		pos.pos.add(tmp.x, tmp.y, 0.0f);
 		
-		System.out.println(mov.velocity.x );
+		//System.out.println(mov.velocity.x );
 		if(mov.velocity.x > 0.0f){
 			pos.scale.x = Math.abs(pos.scale.x);
 			pos.scale.x *= 1.0f;

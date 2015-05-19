@@ -56,7 +56,7 @@ public class PlayerSystem extends IteratingSystem {
 				&& state.get() != PlayerComponent.STATE_RUNNING){
 			state.set(PlayerComponent.STATE_RUNNING);
 		}
-		mov.velocity.x = -accelX / 10.0f * PlayerComponent.MOVE_VELOCITY;
+		mov.velocity.x = -accelX / 16.0f * PlayerComponent.MOVE_VELOCITY;
 	}
 
 }

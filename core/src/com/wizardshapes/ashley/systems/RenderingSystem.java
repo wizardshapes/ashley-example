@@ -6,13 +6,13 @@ import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
+import com.badlogic.gdx.maps.tiled.renderers.BatchTiledMapRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
+import com.wizardshapes.ashley.components.MapLayerComponent;
 import com.wizardshapes.ashley.components.TextureComponent;
 import com.wizardshapes.ashley.components.TransformComponent;
 
@@ -23,19 +23,26 @@ public class RenderingSystem extends IteratingSystem {
 	static final float PIXELS_TO_METRES = 1.0f / 32.0f;
 	
 	private SpriteBatch batch;
+	private Array<Entity> backgroundQueue;
+	private Array<Entity> foregroundQueue;
 	private Array<Entity> renderQueue;
 	private Comparator<Entity> comparator;
 	private OrthographicCamera cam;
+	private BatchTiledMapRenderer tiledMapRenderer;
 	
 	private ComponentMapper<TextureComponent> textureMapper;
 	private ComponentMapper<TransformComponent> transformMapper;
+	private ComponentMapper<MapLayerComponent> mapLayerMapper;
+	private Comparator<Entity> mapComparator;
 
-	public RenderingSystem(SpriteBatch batch) {
-		super(Family.all(TransformComponent.class, TextureComponent.class).get());
-
+	public RenderingSystem(SpriteBatch batch, BatchTiledMapRenderer tiledMapRenderer) {
+		super(Family.one(TransformComponent.class, TextureComponent.class, MapLayerComponent.class).get());
+		
 		textureMapper = ComponentMapper.getFor(TextureComponent.class);
 		transformMapper = ComponentMapper.getFor(TransformComponent.class);
-		
+		mapLayerMapper = ComponentMapper.getFor(MapLayerComponent.class);
+		backgroundQueue = new Array<Entity>();
+		foregroundQueue = new Array<Entity>();
 		renderQueue = new Array<Entity>();
 		
 		comparator = new Comparator<Entity>() {
@@ -46,8 +53,16 @@ public class RenderingSystem extends IteratingSystem {
 			}
 		};
 		
-		this.batch = batch;
+		mapComparator = new Comparator<Entity>(){
+			@Override
+			public int compare(Entity entityA, Entity entityB) {
+				return (int)Math.signum(mapLayerMapper.get(entityB).zIndex -
+										mapLayerMapper.get(entityA).zIndex);
+			}
+		};
 		
+		this.batch = batch;
+		this.tiledMapRenderer = tiledMapRenderer;
 		cam = new OrthographicCamera(FRUSTUM_WIDTH, FRUSTUM_HEIGHT);
 		cam.position.set(FRUSTUM_WIDTH / 2, FRUSTUM_HEIGHT / 2, 0);
 	}
@@ -57,6 +72,8 @@ public class RenderingSystem extends IteratingSystem {
 		super.update(deltaTime);
 		
 		renderQueue.sort(comparator);
+		backgroundQueue.sort(mapComparator);
+		foregroundQueue.sort(mapComparator);
 		
 		cam.update();
 		
@@ -70,10 +87,16 @@ public class RenderingSystem extends IteratingSystem {
 //			shapeRenderer.circle(i, 10f, 1);
 //		}
 //		shapeRenderer.end();
-		 
+		tiledMapRenderer.setView(cam);
+		tiledMapRenderer.getBatch().setProjectionMatrix(cam.combined);
+		for(Entity entity : backgroundQueue){
+			System.out.println("Printing background");
+			renderMapLayer(entity);
+		}
 		
 		batch.setProjectionMatrix(cam.combined);
 		batch.begin();
+		
 		
 		for (Entity entity : renderQueue) {
 			TextureComponent tex = textureMapper.get(entity);
@@ -97,17 +120,48 @@ public class RenderingSystem extends IteratingSystem {
 					   MathUtils.radiansToDegrees * t.rotation);
 		}
 		
+		
+		
 		batch.end();
 		renderQueue.clear();
+		
+		
+		for(Entity entity : foregroundQueue){
+			System.out.println("Printing foreground");
+			renderMapLayer(entity);
+		}
+		foregroundQueue.clear();
+		backgroundQueue.clear();
 	}
 
 	@Override
 	protected void processEntity(Entity entity, float deltaTime) {
-		renderQueue.add(entity);
+		System.err.println(entity.getComponents());
+		if(mapLayerMapper.has(entity)){
+			System.err.println("Found Map");
+			MapLayerComponent layer = mapLayerMapper.get(entity);
+			if(layer.zIndex >= 0)
+				foregroundQueue.add(entity);
+			else
+				backgroundQueue.add(entity);
+		}else{
+			renderQueue.add(entity);
+		}
 	}
 	
 	public OrthographicCamera getCamera() {
 		return cam;
+	}
+	
+	private void renderMapLayer(Entity entity){
+		tiledMapRenderer.getBatch().begin();
+		MapLayerComponent layer = mapLayerMapper.get(entity);
+		if(layer.layer == null){
+			System.err.println("Null map Layer");
+			return;
+		}
+		tiledMapRenderer.renderTileLayer(layer.layer);
+		tiledMapRenderer.getBatch().end();
 	}
 
 }

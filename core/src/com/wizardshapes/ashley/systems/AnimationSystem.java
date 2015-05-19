@@ -34,7 +34,7 @@ public class AnimationSystem extends IteratingSystem {
 		StateComponent state = sm.get(entity);
 		
 		Animation animation = anim.animations.get(state.get());
-		System.out.println("Time: " + state.time + " delta: " + deltaTime + " state: " + state.get());
+		//System.out.println("Time: " + state.time + " delta: " + deltaTime + " state: " + state.get());
 		if (animation != null) {
 			tex.region = animation.getKeyFrame(state.time); 
 		}
